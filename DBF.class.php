@@ -1,53 +1,53 @@
 <?php
 /**	Utility class to write complete DBF files. This is not a database interaction
-	layer, it treats the database file as an all-at-once output.
-	
-	Schemas:
-		schemas are supplied to this library as php arrays as follows:
-		array(
-			'name' => 'COLUMN B'
-			'type' => 'C',
-			'size' => 4,
-			'declength' => 2,
-			'NOCPTRANS' => true,
-		);
-	
-		'name': column name, 10 characters max, padded with null bytes if less than 10, truncated if more than 10
-		'type' : a single character representing the DBF field type, the following are supported:
-			'C': character data stored as 8 bit ascii
-			'N': numeric character data stored as 8 bit ascii, when 'declength' is 
-				present, declength + 1 bytes are consumed to store the decimal values
-			'D': 8 character date specification (YYYYMMDD)
-				always 8 bytes
-			'L': single character boolean, 'T' or 'F' or a space ' ' for unintialized
-				always 1 byte
-			'T': 8 byte binary packed date stamp and milliseconds stamp
-				first four bytes: integer representing days since Jan 1 4713 (julian calendar)
-				second four bytes: integer milliseconds ellapsed since prior midnight
-				always 8 bytes
-	
-		'size': number of bytes this field occupies
-		'declength': only applicable to type 'N', indicates how many of the alloted spaces are for
-			decimal places and the decimal point
-		'NOCPTRANS': Specifies the fields that should not be translated to another code page.
-	
-	Records:
-		records are supplied as arrays keyed by column name with values conforming to these type specs:
-			'C': character data, will be truncated at field size, padded with spaces on the right to field size
-			'N': numeric character data, will be truncated at field size,
-				padded with spaces on the left to field size converts numeric 
-				native types to numeric character data automatically
-			'D': accepts a unix timestamp, a structure resembling 
-				<code>getdate()</code>'s return format, or a 8 length string
-				containing YYYYMMDD
-			'L': accepts and converts ('T' and true) to 'T', ('F' and false) to
-				'F' and everything else to ' '
-			'T': accepts a unix timestamp, a structure resembling 
-				<code>getdate()</code>'s return format or an array containing
-				'jd' => (julian date representation)
-				'js' => milleseconds elapsed since prior midnight
-	
-*/
+  * layer, it treats the database file as an all-at-once output.
+  * <pre>
+  * Schemas:
+  * 	schemas are supplied to this library as php arrays as follows:
+  * 	array(
+  * 		'name' => 'COLUMN B'
+  * 		'type' => 'C',
+  * 		'size' => 4,
+  * 		'declength' => 2,
+  * 		'NOCPTRANS' => true,
+  * 	);
+  * 
+  * 	'name': column name, 10 characters max, padded with null bytes if less than 10, truncated if more than 10
+  * 	'type' : a single character representing the DBF field type, the following are supported:
+  * 		'C': character data stored as 8 bit ascii
+  * 		'N': numeric character data stored as 8 bit ascii, when 'declength' is 
+  * 			present, declength + 1 bytes are consumed to store the decimal values
+  * 		'D': 8 character date specification (YYYYMMDD)
+  * 			always 8 bytes
+  * 		'L': single character boolean, 'T' or 'F' or a space ' ' for unintialized
+  * 			always 1 byte
+  * 		'T': 8 byte binary packed date stamp and milliseconds stamp
+  * 			first four bytes: integer representing days since Jan 1 4713 (julian calendar)
+  * 			second four bytes: integer milliseconds ellapsed since prior midnight
+  * 			always 8 bytes
+  * 
+  * 	'size': number of bytes this field occupies
+  * 	'declength': only applicable to type 'N', indicates how many of the alloted spaces are for
+  * 		decimal places and the decimal point
+  * 	'NOCPTRANS': Specifies the fields that should not be translated to another code page.
+  * 
+  * Records:
+  * 	records are supplied as arrays keyed by column name with values conforming to these type specs:
+  * 		'C': character data, will be truncated at field size, padded with spaces on the right to field size
+  * 		'N': numeric character data, will be truncated at field size,
+  * 			padded with spaces on the left to field size converts numeric 
+  * 			native types to numeric character data automatically
+  * 		'D': accepts a unix timestamp, a structure resembling 
+  * 			<code>getdate()</code>'s return format, or a 8 length string
+  * 			containing YYYYMMDD
+  * 		'L': accepts and converts ('T' and true) to 'T', ('F' and false) to
+  * 			'F' and everything else to ' '
+  * 		'T': accepts a unix timestamp, a structure resembling 
+  * 			<code>getdate()</code>'s return format or an array containing
+  * 			'jd' => (julian date representation)
+  * 			'js' => milleseconds elapsed since prior midnight
+  * </pre>
+  */
 class DBF {
 	// utility function to ouput a string of binary digits for inspection
 	private static function binout($bin) {
@@ -59,27 +59,27 @@ class DBF {
 		return $bin;
 	}
 	
-	/**	Writes a DBF file to the provided location <code>$filename</code>, with a given
-		<code>$schema</code> containing the DBF formatted <code>$records</code>
-		marked with the 'last updated' mark <code>$date</code> or a current timestamp if last 
-		update is not provided.
-		@see DBF
-		@param string $filename a writable path to place the DBF
-		@param array $schema an array containing DBF field specifications for each 
-			field in the DBF file (see <code>class DBF</code documentation)
-		@param array $records an array of fields given in the same order as the 
-			field specifications given in the schema
-		@param array $date an array matching the return structure of <code>getdate()</code>
-			or null to use the current timestamp
-	*/
+	/**	Writes a DBF file to the provided location {@link $filename}, with a given
+	  * {@link $schema} containing the DBF formatted <code>$records</code>
+	  * marked with the 'last updated' mark <code>$date</code> or a current timestamp if last 
+	  * update is not provided.
+	  * @see DBF
+	  * @param string $filename a writable path to place the DBF
+	  * @param array $schema an array containing DBF field specifications for each 
+	  * 	field in the DBF file (see <code>class DBF</code documentation)
+	  * @param array $records an array of fields given in the same order as the 
+	  * 	field specifications given in the schema
+	  * @param array $date an array matching the return structure of <code>getdate()</code>
+	  * 	or null to use the current timestamp
+	  */
 	public static function write($filename, array $schema, array $records, $date=null) {
 		file_put_contents($filename, self::getBinary($schema, $records, $date));
 	}
 	
 	/** Gets the DBF file as a binary string
-		@see DBF::write()
-		@return string a binary string containing the DBF file.
-	*/
+	  * @see DBF::write()
+	  * @return string a binary string containing the DBF file.
+	  */
 	public static function getBinary(array $schema, array $records, $pDate) {
 		if (is_numeric($pDate)) {
 			$date = getDate($pDate);
@@ -92,13 +92,13 @@ class DBF {
 	}
 	
 	/** Convert a unix timestamp, or the return structure of the <code>getdate()</code>
-		function into a (binary) DBF timestamp.
-		@param mixed $date a unix timestamp or the return structure of the <code>getdate()</code>
-		@param number $milleseconds the number of milleseconds elapsed since 
-			midnight on the day before the date in question. If omitted a second
-			accurate rounding will be constructed from the $date parameter
-		@return string a binary string containing the DBF formatted timestamp
-	*/
+	  * function into a (binary) DBF timestamp.
+	  * @param mixed $date a unix timestamp or the return structure of the <code>getdate()</code>
+	  * @param number $milleseconds the number of milleseconds elapsed since 
+	  * 	midnight on the day before the date in question. If omitted a second
+	  * 	accurate rounding will be constructed from the $date parameter
+	  * @return string a binary string containing the DBF formatted timestamp
+	  */
 	public static function toTimeStamp($date, $milleseconds = null) {
 		if (is_array($date)) {
 			if (isset($date['jd'])) {
@@ -142,9 +142,9 @@ class DBF {
 	}
 	
 	/** Converts a unix timestamp to the type of date expected by this file writer.
-		@param integer $timestamp a unix timestamp, or the return format of <code>getdate()</code>
-		@return string a date formatted to DBF expectations (8 byte string: YYYYMMDD);
-	*/
+	  * @param integer $timestamp a unix timestamp, or the return format of <code>getdate()</code>
+	  * @return string a date formatted to DBF expectations (8 byte string: YYYYMMDD);
+	  */
 	public static function toDate($timestamp) {
 		if (!is_numeric($timestamp) && !is_array($timestamp)) {
 			throw new InvalidArgumentException('$timestamp was not in expected format(s).');
@@ -170,13 +170,13 @@ class DBF {
 	}
 	
 	/** Convert a boolean value into DBF equivalent, preserving the meaning of 'T' or 'F'
-			non-booleans will be converted to ' ' (unintialized) with the exception of
-			'T' or 'F', which will be kept as is.
-			booleans will be converted to their respective meanings (true = 'T', false = 'F')
-			
-		@param mixed $value value to be converted
-		@return string length 1 string containing 'T', 'F' or uninitialized ' '
-	*/
+	  * 	non-booleans will be converted to ' ' (unintialized) with the exception of
+	  * 	'T' or 'F', which will be kept as is.
+	  * 	booleans will be converted to their respective meanings (true = 'T', false = 'F')
+	  * 	
+	  * @param mixed $value value to be converted
+	  * @return string length 1 string containing 'T', 'F' or uninitialized ' '
+	  */
 	public static function toLogical($value) {
 		if ($value === 'F' || $value === false) {
 			return 'F';
