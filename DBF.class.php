@@ -125,6 +125,11 @@ class DBF {
 				} else {
 					$utime = $date;
 				}
+				
+				if (!isset($utime['hours'])) {
+					var_dump($utime);
+				}
+				
 				$ms = (
 					//FIXME: grumble grumble seems to be 9 hours off,
 					// no idea where the 9 came from
