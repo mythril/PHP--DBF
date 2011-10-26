@@ -290,8 +290,10 @@ class DBF {
 	private static function makeRecord($schema, $record) {
 		$out = " ";
 		
-		foreach($record as $column => $data) {
-			$out .= self::makeField($data, $schema[$column]);
+		//foreach($record as $column => $data) {
+		foreach($schema as $column => $declaration) {
+			//$out .= self::makeField($data, $schema[$column]);
+			$out .= self::makeField($record[$column], $declaration);
 		}
 		
 		return $out;
