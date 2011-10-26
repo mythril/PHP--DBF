@@ -146,6 +146,10 @@ class DBF {
 	  * @return string a date formatted to DBF expectations (8 byte string: YYYYMMDD);
 	  */
 	public static function toDate($timestamp) {
+		if (empty($timestamp)) {
+			$timestamp = 0;
+		}
+		
 		if (!is_numeric($timestamp) && !is_array($timestamp)) {
 			throw new InvalidArgumentException('$timestamp was not in expected format(s).');
 		}
@@ -235,7 +239,7 @@ class DBF {
 			}
 		}
 		
-		if (self::validate_date_string($tmp)) {
+		if (self::validate_date_string($data)) {
 			return $data;
 		}
 		
@@ -245,6 +249,9 @@ class DBF {
 	//assembles a number into DBF format, truncating and padding where required
 	private static function numeric($data, $fieldInfo) {
 		if (isset($fieldInfo['declength']) && $fieldInfo['declength'] > 0) {
+			if (is_string($data)) {
+				$data = floatval($data);
+			}
 			$cleaned = str_pad(number_format($data, $fieldInfo['declength']), $fieldInfo['size'], ' ', STR_PAD_LEFT);
 		} else {
 			$cleaned = str_pad(strval(intval($data)), $fieldInfo['size'], ' ', STR_PAD_LEFT);
@@ -293,7 +300,10 @@ class DBF {
 		//foreach($record as $column => $data) {
 		foreach($schema as $column => $declaration) {
 			//$out .= self::makeField($data, $schema[$column]);
-			$out .= self::makeField($record[$column], $declaration);
+			$out .= self::makeField(
+				$record[$column],
+				$declaration
+			);
 		}
 		
 		return $out;
@@ -321,9 +331,9 @@ class DBF {
 		//16+1
 		$out .= (pack('C', $fieldDef['size']));
 		//17+1
-		$out .= (pack('C', $fieldDef['declength']));
+		$out .= (pack('C', @$fieldDef['declength']));
 		//18+1
-		$out .= (pack('C', $fieldDef['NOCPTRANS'] === true ? 4 : 0));
+		$out .= (pack('C', @$fieldDef['NOCPTRANS'] === true ? 4 : 0));
 		//19+13
 		$out .= (pack('x13'));
 		
