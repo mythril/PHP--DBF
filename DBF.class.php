@@ -120,14 +120,10 @@ class DBF {
 		
 		if (!isset($js)) {
 			if ($milleseconds === null) {
-				if (is_numeric($date)) {
-					$utime = getdate($date);
+				if (is_numeric($date) || empty($date)) {
+					$utime = getdate(intval($date));
 				} else {
 					$utime = $date;
-				}
-				
-				if (!isset($utime['hours'])) {
-					var_dump($utime);
 				}
 				
 				$ms = (
@@ -163,7 +159,7 @@ class DBF {
 			throw new InvalidArgumentException('$timestamp array did not contain expected key(s).');
 		}
 		
-		if (is_string($timestamp) && self::validate_date_string($timestamp)) {
+		if (is_string($timestamp) && strlen($timestamp) === 8 && self::validate_date_string($timestamp)) {
 			return $timestamp;
 		}
 		
@@ -244,20 +240,13 @@ class DBF {
 			}
 		}
 		
-		if (self::validate_date_string($data)) {
-			return $data;
-		}
-		
 		return self::toDate($data);
 	}
 	
 	//assembles a number into DBF format, truncating and padding where required
 	private static function numeric($data, $fieldInfo) {
 		if (isset($fieldInfo['declength']) && $fieldInfo['declength'] > 0) {
-			if (is_string($data)) {
-				$data = floatval($data);
-			}
-			$cleaned = str_pad(number_format($data, $fieldInfo['declength']), $fieldInfo['size'], ' ', STR_PAD_LEFT);
+			$cleaned = str_pad(number_format(floatval($data), $fieldInfo['declength']), $fieldInfo['size'], ' ', STR_PAD_LEFT);
 		} else {
 			$cleaned = str_pad(strval(intval($data)), $fieldInfo['size'], ' ', STR_PAD_LEFT);
 		}
